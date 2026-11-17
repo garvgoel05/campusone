@@ -30,11 +30,11 @@ async function main() {
   check('no token is rejected (401)', (await call('GET', '/dashboard')).status === 401);
   check('health is public', (await call('GET', '/health')).data?.ok === true);
   const admin = await login('admin@msit.edu', 'admin123');
-  const neha = await login('neha.sharma@msit.edu', 'prof123');
+  const preeti = await login('preeti.sehrawat@msit.edu', 'prof123');
   const garv = await login('00315003123', 'student123');
   const parent = await login('sunil.goel@parents.msit.edu', 'parent123');
   const aryan = await login('aryan009@msit.edu', 'student123');
-  check('all four roles sign in (student by enrollment number)', [admin, neha, garv, parent, aryan].every((x) => x?.token), [admin, garv]);
+  check('all four roles sign in (student by enrollment number)', [admin, preeti, garv, parent, aryan].every((x) => x?.token), [admin, garv]);
   check('suspended student cannot sign in', (await call('POST', '/auth/login', undefined, { identifier: 'harsh038@msit.edu', password: 'student123' })).status === 401);
   check('parent is linked to Garv', parent.students?.[0]?.name === 'Garv Goel');
 
@@ -47,7 +47,7 @@ async function main() {
   // ---------- dashboards ----------
   const dA = (await call('GET', '/dashboard', admin.token)).data;
   check('admin overview has enrollment and 8 weeks', dA.enrollment?.length >= 5 && dA.weeks?.length === 8, dA);
-  const dT = (await call('GET', '/dashboard', neha.token)).data;
+  const dT = (await call('GET', '/dashboard', preeti.token)).data;
   check('professor overview lists 3 courses and low attendance', dT.courses?.length === 3 && dT.below?.length > 0, dT);
   check('admin health details', typeof (await call('GET', '/health/details', admin.token)).data?.dbMs === 'number');
 
@@ -62,25 +62,25 @@ async function main() {
   await call('PATCH', '/attendance/settings', garv.token, { warnAt: 80 });
 
   // ---------- professor takes attendance; Garv absent triggers alert flow ----------
-  const courses = (await call('GET', '/courses', neha.token)).data;
+  const courses = (await call('GET', '/courses', preeti.token)).data;
   const it305 = courses.find((c: any) => c.code === 'IT-305');
-  const roster = (await call('GET', `/attendance/roster?courseId=${it305.id}&date=${today()}`, neha.token)).data;
+  const roster = (await call('GET', `/attendance/roster?courseId=${it305.id}&date=${today()}`, preeti.token)).data;
   check('roster lists active students only (11)', roster.rows.length === 11, roster.rows.length);
   const garvRow = roster.rows.find((r: any) => r.name === 'Garv Goel');
-  const mark = await call('POST', '/attendance/mark', neha.token, { courseId: it305.id, date: today(), records: roster.rows.map((r: any) => ({ studentId: r.studentId, status: r === garvRow ? 'ABSENT' : 'PRESENT' })) });
+  const mark = await call('POST', '/attendance/mark', preeti.token, { courseId: it305.id, date: today(), records: roster.rows.map((r: any) => ({ studentId: r.studentId, status: r === garvRow ? 'ABSENT' : 'PRESENT' })) });
   check('attendance saved', mark.status === 201 && mark.data.present === 10, mark.data);
-  check('future date rejected (400)', (await call('POST', '/attendance/mark', neha.token, { courseId: it305.id, date: '2999-01-01', records: [{ studentId: garvRow.studentId, status: 'PRESENT' }] })).status === 400);
+  check('future date rejected (400)', (await call('POST', '/attendance/mark', preeti.token, { courseId: it305.id, date: '2999-01-01', records: [{ studentId: garvRow.studentId, status: 'PRESENT' }] })).status === 400);
   const rakeshCourse = (await call('GET', '/courses', admin.token)).data.find((c: any) => c.code === 'IT-307');
-  check('professor cannot open another professor\'s course (403)', (await call('GET', `/attendance/roster?courseId=${rakeshCourse.id}&date=${today()}`, neha.token)).status === 403);
+  check('professor cannot open another professor\'s course (403)', (await call('GET', `/attendance/roster?courseId=${rakeshCourse.id}&date=${today()}`, preeti.token)).status === 403);
   const gn = (await call('GET', '/notifications', garv.token)).data;
   check('absent student was notified', gn.items.some((n: any) => n.title === 'Marked absent in IT-305'), gn.items.slice(0, 3));
 
   // ---------- self check-in ----------
   check('no window: check-in refused (400)', (await call('POST', '/checkin', aryan.token, { lat: 28.62095, lng: 77.09245, acc: 10, method: 'LIVE', photo: PHOTO })).status === 400);
   const it303 = courses.find((c: any) => c.code === 'IT-303');
-  const win = await call('POST', '/checkin/window', neha.token, { courseId: it303.id, minutes: 10 });
+  const win = await call('POST', '/checkin/window', preeti.token, { courseId: it303.id, minutes: 10 });
   check('professor opens a check-in window', win.status === 201, win.data);
-  check('second window refused while one is open (400)', (await call('POST', '/checkin/window', neha.token, { courseId: it305.id, minutes: 5 })).status === 400);
+  check('second window refused while one is open (400)', (await call('POST', '/checkin/window', preeti.token, { courseId: it305.id, minutes: 5 })).status === 400);
   const cur = (await call('GET', '/checkin/current', aryan.token)).data;
   check('student sees the open window', cur.window?.code === 'IT-303', cur);
   check('outside the geofence refused (400)', (await call('POST', '/checkin', aryan.token, { lat: 28.70, lng: 77.20, acc: 10, method: 'LIVE', photo: PHOTO })).status === 400);
@@ -89,18 +89,18 @@ async function main() {
   check('checking in twice refused (400)', (await call('POST', '/checkin', aryan.token, { lat: 28.6211, lng: 77.0925, acc: 12, method: 'LIVE', photo: PHOTO })).status === 400);
   const weak = await call('POST', '/checkin', garv.token, { lat: 28.6211, lng: 77.0925, acc: 160, method: 'UPLOAD', photo: PHOTO });
   check('weak GPS + uploaded photo needs review', weak.data?.status === 'NEEDS_REVIEW' && weak.data.flags.length === 2, weak.data);
-  const ros2 = (await call('GET', `/attendance/roster?courseId=${it303.id}&date=${today()}`, neha.token)).data;
+  const ros2 = (await call('GET', `/attendance/roster?courseId=${it303.id}&date=${today()}`, preeti.token)).data;
   check('verified check-in marks the student present', ros2.rows.find((r: any) => r.name === 'Aryan Mishra')?.status === 'PRESENT', ros2.rows);
-  const approve = await call('POST', `/checkin/${weak.data.id}/decide`, neha.token, { status: 'APPROVED' });
+  const approve = await call('POST', `/checkin/${weak.data.id}/decide`, preeti.token, { status: 'APPROVED' });
   check('professor approves a flagged check-in', approve.status === 201);
-  await call('POST', `/checkin/window/${win.data.id}/close`, neha.token);
+  await call('POST', `/checkin/window/${win.data.id}/close`, preeti.token);
   check('closed window no longer shown', (await call('GET', '/checkin/current', aryan.token)).data.window === null);
 
   // ---------- assignments with files ----------
   const form = new FormData();
   form.append('courseId', it305.id); form.append('title', 'Smoke test assignment'); form.append('due', today()); form.append('maxMarks', '10');
   form.append('files', new Blob(['%PDF-1.4\n'], { type: 'application/pdf' }), 'brief.pdf');
-  const created = await call('POST', '/assignments', neha.token, form);
+  const created = await call('POST', '/assignments', preeti.token, form);
   check('professor creates assignment with attachment', created.status === 201 && created.data.files === 1, created.data);
   const exe = new FormData(); exe.append('file', new Blob(['MZ'], { type: 'application/octet-stream' }), 'virus.exe');
   check('disallowed file type rejected (400)', (await call('POST', `/assignments/${created.data.id}/submit`, garv.token, exe)).status === 400);
@@ -108,16 +108,16 @@ async function main() {
   check('student submits a file', sub.status === 201 && sub.data.file?.name === 'answer.pdf', sub.data);
   check('student downloads own submission', (await call('GET', `/files/${sub.data.file.id}`, garv.token)).status === 200);
   check('classmate cannot download it (403)', (await call('GET', `/files/${sub.data.file.id}`, aryan.token)).status === 403);
-  const subs = (await call('GET', `/assignments/${created.data.id}/submissions`, neha.token)).data;
+  const subs = (await call('GET', `/assignments/${created.data.id}/submissions`, preeti.token)).data;
   const row = subs.rows.find((r: any) => r.submission);
-  check('marks above max rejected (400)', (await call('POST', `/submissions/${row.submission.id}/grade`, neha.token, { marks: 11 })).status === 400);
-  check('professor grades', (await call('POST', `/submissions/${row.submission.id}/grade`, neha.token, { marks: 9, feedback: 'Neat.' })).data?.marks === 9);
+  check('marks above max rejected (400)', (await call('POST', `/submissions/${row.submission.id}/grade`, preeti.token, { marks: 11 })).status === 400);
+  check('professor grades', (await call('POST', `/submissions/${row.submission.id}/grade`, preeti.token, { marks: 9, feedback: 'Neat.' })).data?.marks === 9);
   check('graded work cannot be resubmitted (403)', (await call('POST', `/assignments/${created.data.id}/submit`, garv.token, pdf('again.pdf'))).status === 403);
 
   // ---------- internal marks ----------
-  const cm = (await call('GET', `/grades/class?courseId=${it305.id}`, neha.token)).data;
-  check('internal marks over 25 rejected (400)', (await call('PUT', '/grades/class', neha.token, { courseId: it305.id, marks: [{ studentId: cm.rows[0].studentId, marks: 30 }] })).status === 400);
-  const saved = await call('PUT', '/grades/class', neha.token, { courseId: it305.id, marks: [{ studentId: cm.rows[0].studentId, marks: 20 }] });
+  const cm = (await call('GET', `/grades/class?courseId=${it305.id}`, preeti.token)).data;
+  check('internal marks over 25 rejected (400)', (await call('PUT', '/grades/class', preeti.token, { courseId: it305.id, marks: [{ studentId: cm.rows[0].studentId, marks: 30 }] })).status === 400);
+  const saved = await call('PUT', '/grades/class', preeti.token, { courseId: it305.id, marks: [{ studentId: cm.rows[0].studentId, marks: 20 }] });
   check('internal marks saved', saved.status === 200, saved.data);
   const g = (await call('GET', '/grades', garv.token)).data;
   check('student grades include CGPA and assignment mark', g.cgpa > 8 && g.assignments.some((a: any) => a.title === 'Smoke test assignment'), g);
@@ -155,11 +155,11 @@ async function main() {
   const lv2 = pdf('certificate.pdf'); lv2.append('type', 'Medical leave'); lv2.append('from', '2026-01-01'); lv2.append('to', '2026-01-05'); lv2.append('reason', 'Fever');
   const leave = await call('POST', '/leaves', garv.token, lv2);
   check('medical leave with proof accepted', leave.status === 201);
-  check('coordinator approves', (await call('POST', `/leaves/${leave.data.id}/decide`, neha.token, { status: 'APPROVED' })).status === 201);
+  check('coordinator approves', (await call('POST', `/leaves/${leave.data.id}/decide`, preeti.token, { status: 'APPROVED' })).status === 201);
   const pooja = await login('pooja.khanna@msit.edu', 'prof123');
   const cert = await call('POST', '/certificates', garv.token, { type: 'Bonafide certificate', purpose: 'passport' });
   check('non-coordinator cannot mark certificate ready (403)', (await call('POST', `/certificates/${cert.data.id}/ready`, pooja.token)).status === 403);
-  check('coordinator marks certificate ready', (await call('POST', `/certificates/${cert.data.id}/ready`, neha.token)).status === 201);
+  check('coordinator marks certificate ready', (await call('POST', `/certificates/${cert.data.id}/ready`, preeti.token)).status === 201);
 
   // ---------- placements ----------
   const drives = (await call('GET', '/placements', garv.token)).data.drives;
@@ -169,9 +169,9 @@ async function main() {
   check('eligible drive registers', (await call('POST', `/placements/${byName('ByteHarbor').id}/register`, garv.token)).data?.registered === true);
 
   // ---------- announcements and admin ----------
-  const ann = await call('POST', '/announcements', neha.token, { title: 'Quiz on Friday', body: 'Unit 2 quiz.', audience: it305.id });
+  const ann = await call('POST', '/announcements', preeti.token, { title: 'Quiz on Friday', body: 'Unit 2 quiz.', audience: it305.id });
   check('professor posts to own course', ann.status === 201);
-  check('professor cannot post to another course (403)', (await call('POST', '/announcements', neha.token, { title: 'Wrong course', body: 'Body text', audience: rakeshCourse.id })).status === 403);
+  check('professor cannot post to another course (403)', (await call('POST', '/announcements', preeti.token, { title: 'Wrong course', body: 'Body text', audience: rakeshCourse.id })).status === 403);
   check('student in the course sees it', (await call('GET', '/announcements', garv.token)).data.some((a: any) => a.title === 'Quiz on Friday'));
   check('faculty-only notice hidden from students', !(await call('GET', '/announcements', garv.token)).data.some((a: any) => a.title.startsWith('Faculty meeting')));
   const nu = await call('POST', '/people', admin.token, { role: 'STUDENT', name: 'Test Student', email: 'test.student@msit.edu', dept: 'CSE' });

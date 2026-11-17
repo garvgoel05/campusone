@@ -19,7 +19,7 @@ Open http://localhost:3000, pick a role on the sign-in page and press **Fill in*
 | Role      | Sign in with                   | Password     | What to try                                                                 |
 |-----------|--------------------------------|--------------|-----------------------------------------------------------------------------|
 | Admin     | admin@msit.edu                 | admin123     | Live system health, add or suspend users, add courses, post announcements   |
-| Professor | neha.sharma@msit.edu           | prof123      | Open self check-in, take attendance, grade work, enter internal marks, approve leave |
+| Professor | preeti.sehrawat@msit.edu        | prof123      | Open self check-in, take attendance, grade work, enter internal marks, approve leave |
 | Student   | 00315003123 (enrollment no.)   | student123   | Attendance tracker and alerts, check in, submit files, study rooms, fees, placements |
 | Parent    | sunil.goel@parents.msit.edu    | parent123    | Follow Garv's attendance, grades and exams, pay fees                        |
 

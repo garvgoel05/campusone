@@ -69,7 +69,7 @@ async function main() {
   // ---------- people ----------
   const admin = await user('Ritika Malhotra', 'admin@msit.edu', 'ADMIN', 'admin123');
   const fac = (name: string, email: string, dept: string, designation: string, status = 'ACTIVE') => user(name, email, 'TEACHER', 'prof123', { dept, designation, status });
-  const neha = await fac('Dr. Neha Sharma', 'neha.sharma@msit.edu', 'IT', 'Assistant Professor');
+  const preeti = await fac('Dr. Preeti Sehrawat', 'preeti.sehrawat@msit.edu', 'IT', 'Assistant Professor');
   const rakesh = await fac('Prof. Rakesh Yadav', 'rakesh.yadav@msit.edu', 'IT', 'Professor');
   const pooja = await fac('Dr. Pooja Khanna', 'pooja.khanna@msit.edu', 'IT', 'Associate Professor');
   const shalini = await fac('Ms. Shalini Rao', 'shalini.rao@msit.edu', 'Humanities', 'Assistant Professor');
@@ -77,7 +77,7 @@ async function main() {
   await fac('Ms. Aditi Chawla', 'aditi.chawla@msit.edu', 'ECE', 'Assistant Professor', 'ON_LEAVE');
   const parent = await user('Sunil Goel', 'sunil.goel@parents.msit.edu', 'PARENT', 'parent123');
 
-  const it1 = await prisma.classroom.create({ data: { name: 'IT-1', dept: 'IT', program: 'B.Tech IT', batch: '2023–27', semester: 5, feeDue: addDays(18), coordinatorId: neha.id } });
+  const it1 = await prisma.classroom.create({ data: { name: 'IT-1', dept: 'IT', program: 'B.Tech IT', batch: '2023–27', semester: 5, feeDue: addDays(18), coordinatorId: preeti.id } });
 
   const names = ['Garv Goel', 'Aryan Mishra', 'Abhishek Kumar', 'Ananya Verma', 'Ishaan Bansal', 'Kavya Arora', 'Rohan Sehgal', 'Priya Nair', 'Tanmay Jain', 'Simran Kaur', 'Harsh Vardhan', 'Mehak Gupta'];
   const serials = ['003', '009', '032', '011', '014', '017', '021', '024', '027', '035', '038', '041'];
@@ -111,9 +111,9 @@ async function main() {
 
   // ---------- courses and timetable ----------
   const courseDefs: [string, string, string, number, number][] = [
-    ['IT-301', 'Database Management Systems', neha.id, 4, 200],
-    ['IT-303', 'Computer Networks', neha.id, 4, 265],
-    ['IT-305', 'Web Technologies', neha.id, 3, 160],
+    ['IT-301', 'Database Management Systems', preeti.id, 4, 200],
+    ['IT-303', 'Computer Networks', preeti.id, 4, 265],
+    ['IT-305', 'Web Technologies', preeti.id, 3, 160],
     ['IT-307', 'Operating Systems', rakesh.id, 4, 30],
     ['IT-309', 'Software Engineering', pooja.id, 3, 330],
     ['HS-311', 'Technical Writing', shalini.id, 2, 5],
@@ -186,7 +186,7 @@ async function main() {
   await prisma.campus.create({ data: { id: 'main', name: 'MSIT campus, Janakpuri', lat: 28.62095, lng: 77.09245, radius: 200 } });
   for (const [code, off, dist, acc, status, flags] of [['IT-305', -1, 64, 12, 'VERIFIED', ''], ['IT-303', -2, 118, 140, 'APPROVED', 'Weak GPS, ±140 m']] as const) {
     const date = addDays(off);
-    const w = await prisma.checkWindow.create({ data: { courseId: courses[code].id, date, openedById: neha.id, openedAt: dayAt(off, 9, 15), until: dayAt(off, 9, 25) } });
+    const w = await prisma.checkWindow.create({ data: { courseId: courses[code].id, date, openedById: preeti.id, openedAt: dayAt(off, 9, 15), until: dayAt(off, 9, 25) } });
     await prisma.checkIn.create({
       data: { windowId: w.id, studentId: garv.id, courseId: courses[code].id, date, dist, acc, method: 'LIVE', flags, status, photo: fakePhoto('Garv Goel'), createdAt: dayAt(off, 9, 18) },
     });
@@ -220,7 +220,7 @@ async function main() {
     return prisma.assignment.create({ data: { courseId: courses[code].id, title, description, dueDate: due, maxMarks, createdAt: dayAt(dueOff - 10, 11) } });
   };
   const a1 = await asg('IT-303', 'Subnetting problem set', 'Solve all 12 questions. Show the subnet mask, network address and host range for each.', 3, 10);
-  await pdfFile(neha.id, 'subnetting_questions.pdf', 'IT-303 Subnetting problem set', [
+  await pdfFile(preeti.id, 'subnetting_questions.pdf', 'IT-303 Subnetting problem set', [
     '1. Split 192.168.10.0/24 into 6 subnets. Give the mask and host range of each.',
     '2. How many usable hosts does a /27 network have?',
     '3. Find the network and broadcast address of 172.16.45.200/20.',
@@ -290,7 +290,7 @@ async function main() {
   const med = await pdfFile(garv.userId, 'medical_certificate.pdf', 'Medical certificate', ['Patient: Garv Goel', 'Diagnosis: viral fever', 'Advised rest for three days.']);
   const dis = await pdfFile(S('Rohan Sehgal').userId, 'discharge_summary.pdf', 'Discharge summary', ['Patient: Rohan Sehgal', 'Admitted for dengue, discharged after two days.']);
   const leave = (s: (typeof students)[number], type: string, from: number, to: number, reason: string, fileId: string | null, status: string, h: number) =>
-    prisma.leaveRequest.create({ data: { studentId: s.id, type, from: addDays(from), to: addDays(to), reason, fileId, status, decidedBy: status === 'PENDING' ? null : neha.name, createdAt: hoursAgo(h) } });
+    prisma.leaveRequest.create({ data: { studentId: s.id, type, from: addDays(from), to: addDays(to), reason, fileId, status, decidedBy: status === 'PENDING' ? null : preeti.name, createdAt: hoursAgo(h) } });
   await leave(garv, 'Duty leave (event, sports, hackathon)', -15, -14, 'Represented MSIT at the Smart India Hackathon internal round.', sih.id, 'APPROVED', 16 * 24);
   await leave(garv, 'Medical leave', -8, -6, 'Viral fever, advised three days of rest.', med.id, 'PENDING', 5 * 24);
   await leave(S('Rohan Sehgal'), 'Medical leave', -5, -3, 'Dengue, admitted to hospital for two days.', dis.id, 'PENDING', 2 * 24);
@@ -312,7 +312,7 @@ async function main() {
     prisma.announcement.create({ data: { title, body, audience, authorId, createdAt: hoursAgo(h), byLabel: extra.byLabel ?? null, courseId: extra.courseId ?? null } });
   const examStart = new Date(TODAY); examStart.setDate(examStart.getDate() + 13);
   await ann(`Mid-semester exams begin ${examStart.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })}`, 'The date sheet is on the notice board and on the Exams page. Bring your ID card to every paper; entry closes 15 minutes after the start.', 'ALL', admin.id, 5, { byLabel: 'Examination Cell' });
-  await ann('DBMS lab moved to Lab 4', 'From this week the Tuesday DBMS lab runs in Lab 4 on the second floor. Bring your lab file for the SQL joins practical.', 'COURSE', neha.id, 26, { courseId: courses['IT-301'].id });
+  await ann('DBMS lab moved to Lab 4', 'From this week the Tuesday DBMS lab runs in Lab 4 on the second floor. Bring your lab file for the SQL joins practical.', 'COURSE', preeti.id, 26, { courseId: courses['IT-301'].id });
   await ann('Self check-in is live', 'Professors can now open a short check-in window in class. Mark yourself present from your phone while you are on campus.', 'ALL', admin.id, 72, { byLabel: 'IT Services' });
   await ann('Faculty meeting on NAAC documentation', 'All faculty to meet in the Seminar Hall on Friday at 3:00 pm. Bring course files for the odd semester.', 'TEACHER', admin.id, 48, { byLabel: "Director's Office" });
   await ann('Hackathon registrations are open', 'Teams of up to four can register for the 24-hour inter-college hackathon through the Student Council page.', 'STUDENT', admin.id, 96, { byLabel: 'Student Council' });
@@ -320,9 +320,9 @@ async function main() {
 
   const note = (userId: string, title: string, body: string, link: string, h: number, read = false, kind = 'INFO') =>
     prisma.notification.create({ data: { userId, title, body, link, read, kind, createdAt: hoursAgo(h) } });
-  await note(neha.id, '8 new submissions', '"Subnetting problem set" in IT-303 is ready for grading.', '/assignments', 0.4);
-  await note(neha.id, 'Question papers due', 'Mid-semester question papers are due to the exam cell this week.', '/announcements', 3);
-  await note(neha.id, 'Leave request from Simran Kaur', 'Personal leave, 2 days.', '/leaves', 10);
+  await note(preeti.id, '8 new submissions', '"Subnetting problem set" in IT-303 is ready for grading.', '/assignments', 0.4);
+  await note(preeti.id, 'Question papers due', 'Mid-semester question papers are due to the exam cell this week.', '/announcements', 3);
+  await note(preeti.id, 'Leave request from Simran Kaur', 'Personal leave, 2 days.', '/leaves', 10);
   await note(garv.userId, 'Internal marks updated for Computer Networks', 'IT-303 internal assessment, out of 25.', '/grades', 1);
   await note(garv.userId, 'Attendance warning', `Computer Networks fell below 75% (${pctFor('IT-303').toFixed(1)}%). Attend upcoming classes to stay eligible for exams.`, '/attendance', 20, false, 'WARN');
   await note(garv.userId, '"Subnetting problem set" is due in 3 days', 'IT-303, 10 marks.', '/assignments', 5);
@@ -332,11 +332,11 @@ async function main() {
   const act = (text: string, h: number) => prisma.activity.create({ data: { text, createdAt: hoursAgo(h) } });
   await act("Harsh Vardhan's account was suspended", 26);
   await act('Examination Cell posted the mid-semester date sheet', 5);
-  await act('Dr. Neha Sharma opened self check-in for IT-305', 2);
+  await act('Dr. Preeti Sehrawat opened self check-in for IT-305', 2);
   await act('Garv Goel checked in to IT-305 (verified)', 1.9);
-  await act('Dr. Neha Sharma saved attendance for IT-301 (11 of 12 present)', 0.2);
+  await act('Dr. Preeti Sehrawat saved attendance for IT-301 (11 of 12 present)', 0.2);
 
-  console.log('Seeded. Sign in with admin@msit.edu / admin123, neha.sharma@msit.edu / prof123, 00315003123 / student123 or sunil.goel@parents.msit.edu / parent123.');
+  console.log('Seeded. Sign in with admin@msit.edu / admin123, preeti.sehrawat@msit.edu / prof123, 00315003123 / student123 or sunil.goel@parents.msit.edu / parent123.');
 }
 
 main()

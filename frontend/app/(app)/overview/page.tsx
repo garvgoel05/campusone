@@ -94,7 +94,7 @@ interface TeacherData {
 
 function TeacherOverview() {
   const { user } = useAuth();
-  // "Dr. Neha Sharma" is greeted as "Dr. Sharma"; names without a title use the first name.
+  // Names with a title are greeted by title and surname; names without one use the first name.
   const parts = user!.name.split(' ');
   const called = /^(Dr|Prof|Ms|Mr|Mrs)\.$/.test(parts[0]) ? `${parts[0]} ${parts[parts.length - 1]}` : parts[0];
   usePage(`Good ${greeting()}, ${called}`, new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }));
@@ -257,6 +257,8 @@ function StudentOverview({ parent }: { parent: boolean }) {
 
 export default function OverviewPage() {
   const { user } = useAuth();
+  if (user!.role === 'SUPERADMIN') return <Empty>Open Subscribers from the menu to see live subscribers.</Empty>;
+  if (user!.role === 'SCHOOL') return <Empty>Your school workspace is being set up. Check back soon.</Empty>;
   if (user!.role === 'ADMIN') return <AdminOverview />;
   if (user!.role === 'TEACHER') return <TeacherOverview />;
   return <StudentOverview parent={user!.role === 'PARENT'} />;
