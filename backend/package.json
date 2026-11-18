@@ -11,6 +11,7 @@
     "db:push": "prisma db push --skip-generate",
     "db:seed": "ts-node --transpile-only prisma/seed.ts",
     "db:reset": "prisma db push --force-reset --skip-generate && npm run db:seed",
+    "make-superadmin": "ts-node --transpile-only scripts/make-superadmin.ts",
     "create-superadmin": "ts-node --transpile-only scripts/create-superadmin.ts",
     "seed-schools": "ts-node --transpile-only scripts/seed-schools.ts",
     "test:api":"ts-node --transpile-only test/smoke.ts"
