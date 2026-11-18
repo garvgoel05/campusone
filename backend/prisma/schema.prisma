@@ -1,6 +1,6 @@
 // CampusOne data model.
-// Runs on SQLite for a zero-setup demo. To move to PostgreSQL, change
-// `provider` to "postgresql", set DATABASE_URL to your Postgres URL and run `npm run db:push`.
+// Local development runs on SQLite (zero setup). Docker and production run on PostgreSQL:
+// the npm `pg:*` scripts generate a PostgreSQL copy of this schema (scripts/use-postgres.js).
 // SQLite has no enums, so status-like fields are strings; allowed values are listed in comments.
 
 generator client {
@@ -19,6 +19,8 @@ model User {
   passwordHash  String
   role          String // SUPERADMIN | ADMIN | SCHOOL | TEACHER | STUDENT | PARENT
   status        String         @default("ACTIVE") // ACTIVE | SUSPENDED | ON_LEAVE
+  /// Set when someone else chose the password (a temporary one); the user must pick their own before using the app.
+  mustChangePassword Boolean   @default(false)
   dept          String?
   designation   String?
   createdAt     DateTime       @default(now())

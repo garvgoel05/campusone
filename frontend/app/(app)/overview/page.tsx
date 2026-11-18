@@ -18,7 +18,7 @@ interface AdminData {
   counts: { students: number; active: number; faculty: number; onLeave: number; courses: number; depts: number };
   attendance30: number | null; enrollment: { dept: string; n: number }[]; weeks: { label: string; pct: number | null }[]; activity: { id: string; text: string; createdAt: string }[];
 }
-interface Health { dbMs: number; provider: string; uptimeSec: number; memoryMB: number; node: string; uploads: { files: number; bytes: number }; unreadNotifications: number; users: number }
+interface Health { dbMs: number; provider: string; cache?: { backend: string; ms: number | null }; uptimeSec: number; memoryMB: number; node: string; uploads: { files: number; bytes: number }; unreadNotifications: number; users: number }
 
 function SystemHealth() {
   const [h, setH] = useState<Health | null>(null);
@@ -36,6 +36,7 @@ function SystemHealth() {
   const rows: [string, string, string][] = [
     ['CampusOne API', `NestJS on Node ${h.node}, up ${up(h.uptimeSec)}`, `${h.memoryMB} MB`],
     ['Database', `${h.provider}, round trip`, `${h.dbMs.toFixed(1)} ms`],
+    ...(h.cache ? [['Cache', `${h.cache.backend}, round trip`, h.cache.ms === null ? 'Offline' : `${h.cache.ms.toFixed(1)} ms`] as [string, string, string]] : []),
     ['File storage', `${h.uploads.files} uploaded files`, `${(h.uploads.bytes / 1048576).toFixed(1)} MB`],
     ['Notifications', 'Unread across all accounts', String(h.unreadNotifications)],
   ];
@@ -94,7 +95,7 @@ interface TeacherData {
 
 function TeacherOverview() {
   const { user } = useAuth();
-  // Names with a title are greeted by title and surname; names without one use the first name.
+  // "Dr. Neha Sharma" is greeted as "Dr. Sharma"; names without a title use the first name.
   const parts = user!.name.split(' ');
   const called = /^(Dr|Prof|Ms|Mr|Mrs)\.$/.test(parts[0]) ? `${parts[0]} ${parts[parts.length - 1]}` : parts[0];
   usePage(`Good ${greeting()}, ${called}`, new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }));

@@ -11,7 +11,7 @@ const homeFor = (r?: Role) => (r === 'SUPERADMIN' ? '/superadmin' : '/overview')
 
 const ROLES: Record<DemoRole, { label: string; icon: IconName; blurb: string; idLabel: string; placeholder: string; id: string; pw: string }> = {
   STUDENT: { label: 'Student', icon: 'cap', blurb: 'Learn and submit', idLabel: 'Enrollment number or email', placeholder: 'e.g. 00315003123', id: '00315003123', pw: 'student123' },
-  TEACHER: { label: 'Professor', icon: 'board', blurb: 'Teach and grade', idLabel: 'Faculty email', placeholder: 'name@msit.edu', id: 'preeti.sehrawat@msit.edu', pw: 'prof123' },
+  TEACHER: { label: 'Professor', icon: 'board', blurb: 'Teach and grade', idLabel: 'Faculty email', placeholder: 'name@msit.edu', id: 'neha.sharma@msit.edu', pw: 'prof123' },
   ADMIN: { label: 'Admin', icon: 'shield', blurb: 'Run the institute', idLabel: 'Admin email', placeholder: 'name@msit.edu', id: 'admin@msit.edu', pw: 'admin123' },
   PARENT: { label: 'Parent', icon: 'home', blurb: "Follow your child", idLabel: 'Parent email', placeholder: 'you@example.com', id: 'sunil.goel@parents.msit.edu', pw: 'parent123' },
 };
